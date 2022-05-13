@@ -83,7 +83,10 @@ python vk_bot.py
 ```
 
 ## Пример реализации бота
- 
-Вариант чата с ботом в ВК: 
+Вариант чата с ботом в Telegram:
 
-Вариант чата с ботом в Telegram: 
+![](http://g.recordit.co/3rpBRa8S5t.gif)
+
+Демо реализации бота:  
+- [@GreatSpacePicsBot](https://telegram.me/GreatSpacePicsBot)  
+- [Бот в ВК](https://vk.com/im?sel=-184085204)
