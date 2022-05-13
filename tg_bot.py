@@ -115,7 +115,8 @@ if __name__ == '__main__':
 
     conv_handler = ConversationHandler(
         entry_points=[
-            CommandHandler('start', partial(start, redis_db=redis_db))],
+            CommandHandler('start', partial(start, redis_db=redis_db))
+        ],
 
         states={
             State.CHOOSE: [
