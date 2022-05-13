@@ -10,7 +10,7 @@ GET_SCORE_TEXT = 'Мой счёт'
 
 
 def get_questions():
-    for filename in os.listdir('quiz-questions')[:5]:
+    for filename in os.listdir('quiz-questions'):
         with open(f'quiz-questions/{filename}', 'r', encoding='KOI8-R') as question_file:
             file_contents = question_file.read()
         split_contents = file_contents.split("\n\n")
