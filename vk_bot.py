@@ -138,7 +138,7 @@ if __name__ == '__main__':
         try:
             for event in longpoll.listen():
                 if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                    if event.text.lower() == 'начать сначала':
+                    if event.text.lower() == 'начать сначала' or 'начать':
                         start_quiz(event, vk_api)
                     elif event.text == NEW_QUESTION_TEXT:
                         send_new_question(event, vk_api, questions, redis_db)
