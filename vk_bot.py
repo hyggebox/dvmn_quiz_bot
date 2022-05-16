@@ -75,10 +75,7 @@ def handle_solution_attempt(event, vk_api, questions, redis_db):
     answer = questions[question]
 
     if user_answer.lower() == answer.lower():
-        redis_db.set(
-            SCORE_ID_PATTERN.format(event.user_id),
-            (int(redis_db.get(SCORE_ID_PATTERN.format(event.user_id))) + 1)
-        )
+        redis_db.incr(SCORE_ID_PATTERN.format(event.user_id))
         msg = '🔥 Поздравляю! Это правильный ответ!\nЕщё вопросик?'
     else:
         msg = f'😒 Неправильно… Попробуешь ещё раз?'
