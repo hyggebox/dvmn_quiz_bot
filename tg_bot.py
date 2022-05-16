@@ -29,13 +29,13 @@ class State(Enum):
 
 
 def get_answer(user_id, context):
-    question = context.user_data['redis'].get(user_id)
-    return context.user_data['questions'][question]
+    question = context.bot_data['redis'].get(user_id)
+    return context.bot_data['questions'][question]
 
 
 def start(update: Update, context: CallbackContext, redis_db):
-    context.user_data['questions'] = get_questions()
-    context.user_data['redis'] = redis_db
+    context.bot_data['questions'] = get_questions()
+    context.bot_data['redis'] = redis_db
     context.user_data['score'] = 0
 
     reply_keyboard = [
@@ -54,8 +54,8 @@ def start(update: Update, context: CallbackContext, redis_db):
 
 def send_new_question(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
-    question_to_send = choice(list(context.user_data['questions']))
-    context.user_data['redis'].set(user_id, question_to_send)
+    question_to_send = choice(list(context.bot_data['questions']))
+    context.bot_data['redis'].set(user_id, question_to_send)
 
     update.message.reply_text(text=question_to_send)
 
