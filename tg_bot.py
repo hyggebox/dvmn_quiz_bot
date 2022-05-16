@@ -4,6 +4,7 @@ from functools import partial
 from random import choice
 from time import sleep
 
+import redis
 from environs import Env
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (CommandHandler,
@@ -14,7 +15,6 @@ from telegram.ext import (CommandHandler,
                           ConversationHandler)
 
 from quiz_helpers import (get_questions,
-                          setup_redis_db,
                           NEW_QUESTION_TEXT,
                           GIVE_UP_TEXT,
                           GET_SCORE_TEXT)
@@ -108,7 +108,12 @@ if __name__ == '__main__':
     db_port = env.int('DB_PORT')
     db_password = env.str('DB_PASSWORD')
 
-    redis_db = setup_redis_db(db_endpoint, db_port, db_password)
+    try:
+        redis_db = redis.StrictRedis(host=db_endpoint, port=db_port,
+                                     password=db_password,
+                                     decode_responses=True)
+    except Exception as error:
+        print(error)
 
     updater = Updater(tg_bot_token)
     dispatcher = updater.dispatcher

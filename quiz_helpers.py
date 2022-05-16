@@ -1,8 +1,6 @@
 import os
 import re
 
-import redis
-
 
 NEW_QUESTION_TEXT = 'Новый вопрос'
 GIVE_UP_TEXT = 'Показать ответ'
@@ -34,11 +32,3 @@ def get_questions():
 
     return question_answer_pairs
 
-
-def setup_redis_db(host, port, password):
-    try:
-        return redis.StrictRedis(host=host, port=port,
-                                 password=password,
-                                 decode_responses=True)
-    except Exception as error:
-        print(error)

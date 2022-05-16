@@ -2,6 +2,7 @@ import logging
 from random import choice
 from time import sleep
 
+import redis
 from environs import Env
 import vk_api as vk
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
@@ -9,7 +10,6 @@ from vk_api.utils import get_random_id
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 from quiz_helpers import (get_questions,
-                          setup_redis_db,
                           NEW_QUESTION_TEXT,
                           GIVE_UP_TEXT,
                           GET_SCORE_TEXT)
@@ -113,7 +113,6 @@ def get_score(event, vk_api, redis_db):
     )
 
 
-
 if __name__ == '__main__':
     env = Env()
     env.read_env()
@@ -122,7 +121,12 @@ if __name__ == '__main__':
     db_port = env.int('DB_PORT')
     db_password = env.str('DB_PASSWORD')
 
-    redis_db = setup_redis_db(db_endpoint, db_port, db_password)
+    try:
+        redis_db = redis.StrictRedis(host=db_endpoint, port=db_port,
+                                     password=db_password,
+                                     decode_responses=True)
+    except Exception as error:
+        print(error)
 
     vk_session = vk.VkApi(token=env.str('VK_TOKEN'))
     vk_api = vk_session.get_api()
