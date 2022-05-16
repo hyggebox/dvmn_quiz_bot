@@ -47,7 +47,7 @@ def create_keyboard():
     return keyboard
 
 
-def start_quiz(event, vk_api):
+def start_quiz(event, vk_api, redis_db):
     redis_db.set(SCORE_ID_PATTERN.format(event.user_id), 0)
     vk_api.messages.send(
         user_id=event.user_id,
@@ -139,7 +139,7 @@ if __name__ == '__main__':
             for event in longpoll.listen():
                 if event.type == VkEventType.MESSAGE_NEW and event.to_me:
                     if event.text.lower() == 'начать сначала' or event.text.lower() == 'начать':
-                        start_quiz(event, vk_api)
+                        start_quiz(event, vk_api, redis_db)
                     elif event.text == NEW_QUESTION_TEXT:
                         send_new_question(event, vk_api, questions, redis_db)
                     elif event.text == GIVE_UP_TEXT:
