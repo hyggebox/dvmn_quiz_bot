@@ -20,6 +20,9 @@ from quiz_helpers import (get_questions,
                           GET_SCORE_TEXT)
 
 
+SCORE_ID_PATTERN = 'tg_score{}'
+
+
 logger = logging.getLogger('TGBotLogger')
 
 
@@ -36,7 +39,7 @@ def get_answer(user_id, context):
 def start(update: Update, context: CallbackContext, redis_db):
     context.bot_data['questions'] = get_questions()
     context.bot_data['redis'] = redis_db
-    context.user_data['score'] = 0
+    redis_db.set(SCORE_ID_PATTERN.format(update.effective_user.id), 0)
 
     reply_keyboard = [
         [NEW_QUESTION_TEXT, GIVE_UP_TEXT],
@@ -67,7 +70,7 @@ def handle_solution_attempt(update: Update, context: CallbackContext):
     answer = get_answer(update.effective_user.id, context)
 
     if user_answer.lower() == answer.lower():
-        context.user_data['score'] += 1
+        redis_db.incr(SCORE_ID_PATTERN.format(update.effective_user.id))
         msg = '🔥 Поздравляю! Это правильный ответ!\nЕщё вопросик?'
         update.message.reply_text(text=msg)
         return State.CHOOSE
@@ -84,13 +87,15 @@ def send_answer(update: Update, context: CallbackContext):
 
 
 def get_score(update: Update, context: CallbackContext):
-    update.message.reply_text(f'Счёт {context.user_data["score"]}')
+    score = redis_db.get(SCORE_ID_PATTERN.format(update.effective_user.id))
+    update.message.reply_text(f'Счёт {score}')
     return State.CHOOSE
 
 
 def end_quiz(update: Update, context: CallbackContext):
+    score = redis_db.get(SCORE_ID_PATTERN.format(update.effective_user.id))
     update.message.reply_text(
-        f'Спасибо за игру! Финальный счёт {context.user_data["score"]}'
+        f'Спасибо за игру! Финальный счёт {score}'
     )
     return ConversationHandler.END
 
@@ -127,31 +132,26 @@ if __name__ == '__main__':
             State.CHOOSE: [
                 MessageHandler(
                     Filters.text(NEW_QUESTION_TEXT),
-                    send_new_question,
-                    pass_user_data=True
+                    send_new_question
                 ),
                 MessageHandler(
                     Filters.text(GET_SCORE_TEXT),
-                    get_score,
-                    pass_user_data=True
+                    get_score
                 ),
             ],
 
             State.ENTER_ANSWER: [
                 MessageHandler(
                     Filters.text(GIVE_UP_TEXT),
-                    send_answer,
-                    pass_user_data=True
+                    send_answer
                 ),
                 MessageHandler(
                     Filters.text(GET_SCORE_TEXT),
-                    get_score,
-                    pass_user_data=True
+                    get_score
                 ),
                 MessageHandler(
                 Filters.text & ~Filters.command,
-                handle_solution_attempt,
-                pass_user_data=True
+                handle_solution_attempt
                 ),
             ],
         },
