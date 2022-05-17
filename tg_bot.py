@@ -37,8 +37,6 @@ def get_answer(user_id, context):
 
 
 def start(update: Update, context: CallbackContext, redis_db):
-    context.bot_data['questions'] = get_questions()
-    context.bot_data['redis'] = redis_db
     redis_db.set(SCORE_ID_PATTERN.format(update.effective_user.id), 0)
 
     reply_keyboard = [
@@ -160,6 +158,8 @@ def main():
         ]
     )
 
+    dispatcher.bot_data['questions'] = get_questions()
+    dispatcher.bot_data['redis'] = redis_db
     dispatcher.add_handler(conv_handler)
 
     while True:
