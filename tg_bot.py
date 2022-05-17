@@ -113,12 +113,8 @@ if __name__ == '__main__':
     db_port = env.int('DB_PORT')
     db_password = env.str('DB_PASSWORD')
 
-    try:
-        redis_db = redis.StrictRedis(host=db_endpoint, port=db_port,
-                                     password=db_password,
-                                     decode_responses=True)
-    except Exception as error:
-        print(error)
+    redis_db = redis.StrictRedis(host=db_endpoint, port=db_port,
+                                 password=db_password, decode_responses=True)
 
     updater = Updater(tg_bot_token)
     dispatcher = updater.dispatcher
