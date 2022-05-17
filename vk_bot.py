@@ -110,7 +110,7 @@ def get_score(event, vk_api, redis_db):
     )
 
 
-if __name__ == '__main__':
+def main():
     env = Env()
     env.read_env()
 
@@ -148,3 +148,7 @@ if __name__ == '__main__':
         except Exception as err:
             logger.exception(f"⚠ Ошибка бота:\n\n {err}")
             sleep(60)
+
+
+if __name__ == '__main__':
+    main()
