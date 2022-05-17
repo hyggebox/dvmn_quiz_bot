@@ -65,7 +65,7 @@ def send_new_question(update: Update, context: CallbackContext):
     return State.ENTER_ANSWER
 
 
-def handle_solution_attempt(update: Update, context: CallbackContext):
+def handle_solution_attempt(update: Update, context: CallbackContext, redis_db):
     user_answer = update.message.text
     answer = get_answer(update.effective_user.id, context)
 
@@ -86,13 +86,13 @@ def send_answer(update: Update, context: CallbackContext):
     send_new_question(update, context)
 
 
-def get_score(update: Update, context: CallbackContext):
+def get_score(update: Update, context: CallbackContext, redis_db):
     score = redis_db.get(SCORE_ID_PATTERN.format(update.effective_user.id))
     update.message.reply_text(f'Счёт {score}')
     return State.CHOOSE
 
 
-def end_quiz(update: Update, context: CallbackContext):
+def end_quiz(update: Update, context: CallbackContext, redis_db):
     score = redis_db.get(SCORE_ID_PATTERN.format(update.effective_user.id))
     update.message.reply_text(
         f'Спасибо за игру! Финальный счёт {score}'
@@ -100,7 +100,7 @@ def end_quiz(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 
-if __name__ == '__main__':
+def main():
     env = Env()
     env.read_env()
 
@@ -143,16 +143,21 @@ if __name__ == '__main__':
                 ),
                 MessageHandler(
                     Filters.text(GET_SCORE_TEXT),
-                    get_score
+                    partial(get_score, redis_db=redis_db)
                 ),
                 MessageHandler(
-                Filters.text & ~Filters.command,
-                handle_solution_attempt
+                    Filters.text & ~Filters.command,
+                    partial(handle_solution_attempt, redis_db=redis_db)
                 ),
             ],
         },
 
-        fallbacks=[CommandHandler('finish', end_quiz, pass_user_data=True)]
+        fallbacks=[
+            CommandHandler(
+                'finish',
+                partial(end_quiz, redis_db=redis_db)
+            )
+        ]
     )
 
     dispatcher.add_handler(conv_handler)
@@ -165,3 +170,6 @@ if __name__ == '__main__':
             logger.exception(f"⚠ Ошибка бота:\n\n {err}")
             sleep(60)
 
+
+if __name__ == '__main__':
+    main()
