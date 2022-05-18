@@ -1,6 +1,5 @@
 import logging
 from enum import Enum, auto
-from functools import partial
 from random import choice
 from time import sleep
 
@@ -36,7 +35,8 @@ def get_answer(user_id, context):
     return context.bot_data['questions'][question]
 
 
-def start(update: Update, context: CallbackContext, redis_db):
+def start(update: Update, context: CallbackContext):
+    redis_db = context.bot_data['redis']
     redis_db.set(SCORE_ID_PATTERN.format(update.effective_user.id), 0)
 
     reply_keyboard = [
@@ -63,7 +63,8 @@ def send_new_question(update: Update, context: CallbackContext):
     return State.ENTER_ANSWER
 
 
-def handle_solution_attempt(update: Update, context: CallbackContext, redis_db):
+def handle_solution_attempt(update: Update, context: CallbackContext):
+    redis_db = context.bot_data['redis']
     user_answer = update.message.text
     answer = get_answer(update.effective_user.id, context)
 
@@ -84,13 +85,15 @@ def send_answer(update: Update, context: CallbackContext):
     send_new_question(update, context)
 
 
-def get_score(update: Update, context: CallbackContext, redis_db):
+def get_score(update: Update, context: CallbackContext):
+    redis_db = context.bot_data['redis']
     score = redis_db.get(SCORE_ID_PATTERN.format(update.effective_user.id))
     update.message.reply_text(f'Счёт {score}')
     return State.CHOOSE
 
 
-def end_quiz(update: Update, context: CallbackContext, redis_db):
+def end_quiz(update: Update, context: CallbackContext):
+    redis_db = context.bot_data['redis']
     score = redis_db.get(SCORE_ID_PATTERN.format(update.effective_user.id))
     update.message.reply_text(
         f'Спасибо за игру! Финальный счёт {score}'
@@ -118,9 +121,7 @@ def main():
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
-        entry_points=[
-            CommandHandler('start', partial(start, redis_db=redis_db))
-        ],
+        entry_points=[CommandHandler('start', start)],
 
         states={
             State.CHOOSE: [
@@ -141,21 +142,16 @@ def main():
                 ),
                 MessageHandler(
                     Filters.text(GET_SCORE_TEXT),
-                    partial(get_score, redis_db=redis_db)
+                    get_score
                 ),
                 MessageHandler(
                     Filters.text & ~Filters.command,
-                    partial(handle_solution_attempt, redis_db=redis_db)
+                    handle_solution_attempt
                 ),
             ],
         },
 
-        fallbacks=[
-            CommandHandler(
-                'finish',
-                partial(end_quiz, redis_db=redis_db)
-            )
-        ]
+        fallbacks=[CommandHandler('finish', end_quiz)]
     )
 
     dispatcher.bot_data['questions'] = get_questions()
